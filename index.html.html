@@ -1,0 +1,798 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+<title>Steady — Speech Practice</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg-deep:#12162A;
+    --bg-panel:#1B2040;
+    --bg-panel-raised:#232951;
+    --line:#323a66;
+    --accent-warm:#F2A65A;
+    --accent-warm-dim:#F2A65A33;
+    --accent-calm:#5FD4C0;
+    --accent-calm-dim:#5FD4C033;
+    --text-primary:#F4F1EA;
+    --text-muted:#9098B8;
+    --text-faint:#5b6389;
+    --radius:20px;
+    --radius-sm:12px;
+    --font-display:'Space Grotesk', system-ui, sans-serif;
+    --font-body:'Inter', system-ui, sans-serif;
+    --font-mono:'JetBrains Mono', ui-monospace, monospace;
+  }
+  @media (prefers-reduced-motion: reduce){
+    *{animation-duration:0.01ms !important; transition-duration:0.01ms !important;}
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--bg-deep);
+    color:var(--text-primary);
+    font-family:var(--font-body);
+    min-height:100vh;
+    -webkit-font-smoothing:antialiased;
+    overscroll-behavior:none;
+  }
+  #app{
+    max-width:480px;
+    margin:0 auto;
+    min-height:100vh;
+    display:flex;
+    flex-direction:column;
+    position:relative;
+    padding-bottom:84px;
+  }
+  h1,h2,h3{font-family:var(--font-display); margin:0; letter-spacing:-0.01em;}
+  .eyebrow{
+    font-family:var(--font-mono);
+    font-size:11px;
+    letter-spacing:0.14em;
+    text-transform:uppercase;
+    color:var(--text-faint);
+  }
+  /* ---------- Top bar ---------- */
+  .topbar{
+    padding:28px 20px 14px;
+    display:flex;
+    align-items:baseline;
+    justify-content:space-between;
+  }
+  .topbar .brand{font-size:22px; font-weight:600;}
+  .topbar .brand .dot{color:var(--accent-warm);}
+  .streak-pill{
+    display:flex;
+    align-items:center;
+    gap:6px;
+    background:var(--bg-panel);
+    border:1px solid var(--line);
+    padding:6px 12px;
+    border-radius:999px;
+    font-family:var(--font-mono);
+    font-size:13px;
+    color:var(--accent-warm);
+  }
+  /* ---------- Screens ---------- */
+  .screen{ display:none; padding:6px 20px 20px; animation:fadein .25s ease; }
+  .screen.active{ display:block; }
+  @keyframes fadein{ from{opacity:0; transform:translateY(4px);} to{opacity:1; transform:translateY(0);} }
+
+  /* ---------- Home ---------- */
+  .hero-card{
+    background:linear-gradient(160deg, var(--bg-panel-raised), var(--bg-panel));
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:26px 22px;
+    margin-bottom:18px;
+    position:relative;
+    overflow:hidden;
+  }
+  .hero-card::after{
+    content:"";
+    position:absolute;
+    right:-40px; top:-40px;
+    width:150px; height:150px;
+    border-radius:50%;
+    background:radial-gradient(circle, var(--accent-calm-dim), transparent 70%);
+  }
+  .hero-label{color:var(--text-muted); font-size:14px; margin-bottom:4px;}
+  .hero-title{font-size:26px; font-weight:600; margin-bottom:16px; line-height:1.2;}
+  .btn{
+    font-family:var(--font-display);
+    font-weight:600;
+    font-size:15px;
+    border:none;
+    border-radius:999px;
+    padding:14px 22px;
+    cursor:pointer;
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    transition:transform .15s ease, opacity .15s ease;
+  }
+  .btn:active{ transform:scale(0.97); }
+  .btn-primary{ background:var(--accent-warm); color:#241505; }
+  .btn-ghost{ background:var(--bg-panel-raised); color:var(--text-primary); border:1px solid var(--line); }
+  .btn-full{ width:100%; justify-content:center; }
+  .stat-row{ display:flex; gap:10px; margin-top:16px; }
+  .stat-box{
+    flex:1;
+    background:var(--bg-deep);
+    border:1px solid var(--line);
+    border-radius:var(--radius-sm);
+    padding:12px 14px;
+  }
+  .stat-box .num{ font-family:var(--font-mono); font-size:20px; color:var(--accent-calm); }
+  .stat-box .lbl{ font-size:11px; color:var(--text-muted); margin-top:2px; }
+
+  .section-label{
+    font-size:13px; color:var(--text-muted); margin:22px 0 10px 2px;
+  }
+  .tech-list{ display:flex; flex-direction:column; gap:10px; }
+  .tech-card{
+    background:var(--bg-panel);
+    border:1px solid var(--line);
+    border-radius:var(--radius-sm);
+    padding:16px 16px;
+    display:flex;
+    align-items:center;
+    gap:14px;
+    cursor:pointer;
+    transition:border-color .15s ease, background .15s ease;
+  }
+  .tech-card:active{ background:var(--bg-panel-raised); }
+  .tech-icon{
+    width:42px; height:42px; border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    flex-shrink:0;
+    font-size:19px;
+  }
+  .tech-info .tname{ font-weight:600; font-size:15px; margin-bottom:2px; }
+  .tech-info .tdesc{ font-size:12.5px; color:var(--text-muted); line-height:1.35; }
+  .tech-chevron{ margin-left:auto; color:var(--text-faint); font-size:18px; }
+
+  .note-card{
+    margin-top:24px;
+    background:transparent;
+    border:1px dashed var(--line);
+    border-radius:var(--radius-sm);
+    padding:14px 16px;
+    font-size:12.5px;
+    color:var(--text-muted);
+    line-height:1.5;
+  }
+  .note-card b{ color:var(--text-primary); }
+
+  /* ---------- Technique detail ---------- */
+  .back-row{
+    display:flex; align-items:center; gap:10px;
+    margin-bottom:6px; color:var(--text-muted); font-size:14px; cursor:pointer;
+  }
+  .detail-icon{
+    width:56px; height:56px; border-radius:16px;
+    display:flex; align-items:center; justify-content:center;
+    font-size:26px; margin-bottom:14px;
+  }
+  .detail-title{ font-size:24px; font-weight:600; margin-bottom:8px; }
+  .detail-body{ font-size:14.5px; color:var(--text-muted); line-height:1.55; margin-bottom:18px; }
+  .detail-body b{ color:var(--text-primary); }
+  .length-row{ display:flex; gap:8px; margin-bottom:20px; }
+  .length-opt{
+    flex:1; text-align:center; padding:10px 0;
+    border-radius:var(--radius-sm); border:1px solid var(--line);
+    background:var(--bg-panel); font-family:var(--font-mono); font-size:13px;
+    color:var(--text-muted); cursor:pointer;
+  }
+  .length-opt.selected{ border-color:var(--accent-warm); color:var(--accent-warm); background:var(--accent-warm-dim); }
+
+  /* ---------- Practice session ---------- */
+  .session-wrap{ text-align:center; padding-top:8px; }
+  .session-timer{ font-family:var(--font-mono); font-size:15px; color:var(--text-muted); margin-bottom:6px; }
+  .pace-stage{
+    position:relative;
+    width:220px; height:220px;
+    margin:14px auto 22px;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .pace-ring{
+    position:absolute; inset:0;
+    border-radius:50%;
+    border:1px solid var(--line);
+  }
+  .pace-circle{
+    width:120px; height:120px;
+    border-radius:50%;
+    background:radial-gradient(circle at 35% 30%, var(--accent-calm), #2a9d8f);
+    box-shadow:0 0 40px var(--accent-calm-dim);
+    transition:transform 0.1s linear;
+  }
+  .pace-word{
+    font-family:var(--font-display);
+    font-size:15px;
+    font-weight:600;
+    color:#0d3830;
+    position:relative;
+    z-index:2;
+    padding:0 10px;
+    text-align:center;
+  }
+  .pace-cue-label{
+    font-family:var(--font-mono);
+    font-size:12px;
+    letter-spacing:.08em;
+    text-transform:uppercase;
+    color:var(--accent-calm);
+    margin-bottom:2px;
+    height:16px;
+  }
+  .prompt-card{
+    background:var(--bg-panel);
+    border:1px solid var(--line);
+    border-radius:var(--radius-sm);
+    padding:20px 18px;
+    margin-bottom:18px;
+    min-height:66px;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .prompt-text{ font-size:19px; font-weight:500; line-height:1.4; }
+  .prompt-text .pause-mark{ color:var(--accent-warm); margin:0 2px; }
+  .session-controls{ display:flex; gap:10px; }
+  .session-controls .btn{ flex:1; }
+
+  /* ---------- Rating / finish ---------- */
+  .rating-row{ display:flex; gap:8px; margin:18px 0 22px; justify-content:space-between; }
+  .rating-opt{
+    flex:1; aspect-ratio:1; border-radius:14px;
+    border:1px solid var(--line); background:var(--bg-panel);
+    display:flex; align-items:center; justify-content:center;
+    font-size:20px; cursor:pointer;
+  }
+  .rating-opt.selected{ border-color:var(--accent-warm); background:var(--accent-warm-dim); }
+
+  /* ---------- Progress tab ---------- */
+  .heatmap{ display:grid; grid-template-columns:repeat(10,1fr); gap:5px; margin:14px 0 4px; }
+  .hcell{ aspect-ratio:1; border-radius:5px; background:var(--bg-panel); border:1px solid var(--line); }
+  .hcell.l1{ background:#2c5a52; border-color:#2c5a52; }
+  .hcell.l2{ background:#3f9084; border-color:#3f9084; }
+  .hcell.l3{ background:var(--accent-calm); border-color:var(--accent-calm); }
+  .bar-row{ display:flex; align-items:center; gap:10px; margin-bottom:10px; }
+  .bar-label{ width:96px; font-size:12.5px; color:var(--text-muted); flex-shrink:0; }
+  .bar-track{ flex:1; height:10px; background:var(--bg-panel); border-radius:6px; overflow:hidden; }
+  .bar-fill{ height:100%; background:linear-gradient(90deg, var(--accent-calm), var(--accent-warm)); border-radius:6px; }
+  .bar-val{ width:34px; text-align:right; font-family:var(--font-mono); font-size:11.5px; color:var(--text-faint); }
+  .log-row{
+    display:flex; justify-content:space-between; align-items:center;
+    padding:12px 0; border-bottom:1px solid var(--line); font-size:13.5px;
+  }
+  .log-row:last-child{ border-bottom:none; }
+  .log-tech{ font-weight:600; }
+  .log-meta{ color:var(--text-faint); font-size:11.5px; margin-top:2px; }
+  .log-rating{ font-size:16px; }
+  .empty-state{ text-align:center; color:var(--text-faint); padding:40px 10px; font-size:13.5px; }
+
+  /* ---------- Bottom nav ---------- */
+  .bottomnav{
+    position:fixed; bottom:0; left:50%; transform:translateX(-50%);
+    width:100%; max-width:480px;
+    background:rgba(27,32,64,0.9);
+    backdrop-filter:blur(14px);
+    border-top:1px solid var(--line);
+    display:flex;
+    padding:10px 10px calc(10px + env(safe-area-inset-bottom));
+    z-index:50;
+  }
+  .navbtn{
+    flex:1; display:flex; flex-direction:column; align-items:center; gap:3px;
+    background:none; border:none; color:var(--text-faint);
+    font-family:var(--font-body); font-size:11px; cursor:pointer; padding:4px;
+  }
+  .navbtn.active{ color:var(--accent-warm); }
+  .navbtn .ic{ font-size:19px; }
+
+  ::-webkit-scrollbar{ display:none; }
+</style>
+</head>
+<body>
+<div id="app">
+
+  <div class="topbar">
+    <div class="brand">Steady<span class="dot">.</span></div>
+    <div class="streak-pill">🔥 <span id="streakNum">0</span> day streak</div>
+  </div>
+
+  <!-- ============ HOME ============ -->
+  <section class="screen active" id="screen-home">
+    <div class="hero-card">
+      <div class="hero-label">Today's session</div>
+      <div class="hero-title" id="homeSuggestTitle">Pick a technique below</div>
+      <button class="btn btn-primary btn-full" id="quickStartBtn">Start practicing →</button>
+      <div class="stat-row">
+        <div class="stat-box"><div class="num" id="statWeekMin">0</div><div class="lbl">min this week</div></div>
+        <div class="stat-box"><div class="num" id="statWeekSessions">0</div><div class="lbl">sessions this week</div></div>
+        <div class="stat-box"><div class="num" id="statTotal">0</div><div class="lbl">total sessions</div></div>
+      </div>
+    </div>
+
+    <div class="section-label">Techniques</div>
+    <div class="tech-list" id="techList"></div>
+
+    <div class="note-card">
+      <b>Not a replacement for speech therapy.</b> These are standard fluency techniques used across many therapy approaches, but the right mix and pacing is something an SLP tailors to each person. Use this to build daily reps between sessions — or to figure out, together, which techniques are actually worth sticking with.
+    </div>
+  </section>
+
+  <!-- ============ TECHNIQUE DETAIL ============ -->
+  <section class="screen" id="screen-detail">
+    <div class="back-row" onclick="goHome()">← Back</div>
+    <div class="detail-icon" id="detailIcon"></div>
+    <div class="detail-title" id="detailTitle"></div>
+    <div class="detail-body" id="detailBody"></div>
+    <div class="section-label" style="margin-top:0;">Session length</div>
+    <div class="length-row" id="lengthRow"></div>
+    <button class="btn btn-primary btn-full" id="beginSessionBtn">Begin session</button>
+  </section>
+
+  <!-- ============ SESSION ============ -->
+  <section class="screen" id="screen-session">
+    <div class="session-wrap">
+      <div class="session-timer" id="sessionTimer">05:00</div>
+      <div class="pace-stage">
+        <div class="pace-ring"></div>
+        <div class="pace-circle" id="paceCircle">
+          <div class="pace-word" id="paceWord">ready?</div>
+        </div>
+      </div>
+      <div class="pace-cue-label" id="paceCue">breathe in</div>
+      <div class="prompt-card"><div class="prompt-text" id="promptText">Tap start when you're ready.</div></div>
+      <div class="session-controls">
+        <button class="btn btn-ghost" id="skipPromptBtn">Next prompt</button>
+        <button class="btn btn-primary" id="endSessionBtn">End session</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ RATING ============ -->
+  <section class="screen" id="screen-rating">
+    <h2>How did that feel?</h2>
+    <p style="color:var(--text-muted); font-size:14px;">Be honest — this just helps track what's actually working.</p>
+    <div class="rating-row" id="ratingRow">
+      <div class="rating-opt" data-v="1">😣</div>
+      <div class="rating-opt" data-v="2">😕</div>
+      <div class="rating-opt" data-v="3">😐</div>
+      <div class="rating-opt" data-v="4">🙂</div>
+      <div class="rating-opt" data-v="5">😄</div>
+    </div>
+    <button class="btn btn-primary btn-full" id="saveRatingBtn">Save & finish</button>
+  </section>
+
+  <!-- ============ PROGRESS ============ -->
+  <section class="screen" id="screen-progress">
+    <h2 style="margin-bottom:4px;">Progress</h2>
+    <p style="color:var(--text-muted); font-size:13.5px; margin:4px 0 4px;">Last 30 days</p>
+    <div class="heatmap" id="heatmap"></div>
+
+    <div class="section-label">Minutes by technique (all time)</div>
+    <div id="barChart"></div>
+
+    <div class="section-label">Recent sessions</div>
+    <div id="logList"></div>
+  </section>
+
+  <div class="bottomnav">
+    <button class="navbtn active" data-screen="home"><span class="ic">⌂</span>Home</button>
+    <button class="navbtn" data-screen="progress"><span class="ic">▤</span>Progress</button>
+  </div>
+</div>
+
+<script>
+/* ============================================================
+   DATA
+   ============================================================ */
+const TECHNIQUES = [
+  {
+    id:'easy-onset',
+    icon:'🌅',
+    color:'#F2A65A',
+    name:'Easy Onset',
+    short:'Start voicing gently on vowel sounds, letting airflow begin before volume builds.',
+    body:'Before you speak, let a little air out first, then ease into the sound instead of hitting it hard. Think of a dimmer switch turning up, not a light switch flipping on. Practice on words that start with vowels — they make the gentle start easiest to feel.',
+    pace:{ in:1600, hold:400, out:2200 },
+    cueIn:'ease in gently', cueOut:'let it flow',
+    words:['apple','open','easy','umbrella','eleven','over','ivory','admit','ocean','exit','ask','under','April','answer','item'],
+    phrases:['I am ready','Open the door','Ask a question','Easy does it','Every single day','I am okay','Over here','Update the list'],
+    sentences:['I am going to open the window.','Every answer matters to me.','Ask her about the assignment.','I am allowed to take my time.','Update me when it is over.']
+  },
+  {
+    id:'stretchy',
+    icon:'〰️',
+    color:'#5FD4C0',
+    name:'Stretchy Speech',
+    short:'Slow your rate and gently stretch the first sound of a word or phrase.',
+    body:'Stretch out the very first sound of a word for about a second before the rest follows — like pulling on a rubber band. This lowers physical tension and gives your voice a smoother on-ramp. It should feel deliberately slow, almost too slow at first.',
+    pace:{ in:2200, hold:200, out:2200 },
+    cueIn:'stretch...', cueOut:'...and glide',
+    words:['sun','moon','water','family','school','basketball','computer','weekend','favorite','chicken','morning','music','birthday','soccer','vacation'],
+    phrases:['Sunday morning','My favorite show','Let\'s go outside','Time for dinner','See you later','Good morning to you','Water the plants'],
+    sentences:['My favorite subject is history.','We are going to the store later.','Saturday is my favorite day of the week.','Music makes the drive shorter.','I want a bigger breakfast tomorrow.']
+  },
+  {
+    id:'light-contact',
+    icon:'🪶',
+    color:'#B892D6',
+    name:'Light Contacts',
+    short:'Soften how your lips, tongue, and jaw touch on words that start with hard sounds.',
+    body:'Sounds like b, p, d, t, g, and k need your mouth to fully close before releasing — that closure is where tension likes to build. Practice touching those spots as lightly as possible, almost like a whisper of contact, then release smoothly into the vowel.',
+    pace:{ in:1400, hold:600, out:1800 },
+    cueIn:'touch lightly', cueOut:'release smooth',
+    words:['pizza','banana','table','potato','kitchen','garden','ticket','backpack','doctor','teacher','pencil','basket','guitar','cookie','tomato'],
+    phrases:['Pass the ball','Take a break','Big backpack','Good table manners','Kick the ball','Park the car','Pack a bag'],
+    sentences:['The teacher gave us a test today.','I packed my backpack this morning.','Dad made pizza for dinner.','Grab the ticket before we go.','The garden needs more water.']
+  },
+  {
+    id:'pausing',
+    icon:'⏸️',
+    color:'#7FA8D9',
+    name:'Pausing & Phrasing',
+    short:'Break sentences into short chunks with a real pause in between.',
+    body:'Instead of racing through a whole sentence, split it into 3-5 word phrases and put a genuine pause between each one. The pause is not empty air — it is where you reset your breath and drop any built-up tension before the next chunk.',
+    pace:{ in:1200, hold:1200, out:1200 },
+    cueIn:'speak the chunk', cueOut:'pause here',
+    words:[],
+    phrases:['Today / I feel / pretty good.','Let\'s go / to the store / after school.','I have / a project / due Friday.','My favorite class / this year / is art.'],
+    sentences:[
+      'Today / I want to talk about / something important to me.',
+      'It has not always / been easy, / but I am getting better / every single day.',
+      'Sometimes / I need a second / to get my words out, / and that is okay.',
+      'This weekend / we are driving / to my grandmother\'s house.',
+      'I studied / all week / for this test, / so I feel ready.'
+    ]
+  },
+  {
+    id:'breath',
+    icon:'🫁',
+    color:'#6FC2A0',
+    name:'Breath Support',
+    short:'Build a steady breath foundation before the words even start.',
+    body:'A lot of tension shows up when speech starts on empty or shallow breath. This drill is just breathing — low into the belly, not the chest — so your body learns what full support feels like before you add words on top of it.',
+    pace:{ in:2600, hold:800, out:3200 },
+    cueIn:'breathe in, low', cueOut:'let it out, slow',
+    words:['low breath'],
+    phrases:['Breathe in through the nose','Let the belly rise','Sigh it out slowly'],
+    sentences:['Breathe in low, let the belly rise, then let the air go before you speak.','Fill up from the bottom, not the shoulders.','Let the exhale carry the first word out with it.']
+  }
+];
+
+const LENGTHS = [3,5,10];
+
+/* ============================================================
+   STATE
+   ============================================================ */
+let sessions = [];
+let currentTech = null;
+let currentLen = 5;
+let sessionTimerHandle=null, paceHandle=null;
+let sessionSecondsLeft=0;
+let promptQueue=[], promptIdx=0;
+let pendingRating=0;
+let sessionStartTs=null;
+
+/* ============================================================
+   STORAGE
+   ============================================================ */
+const hasClaudeStorage = (typeof window!=='undefined' && window.storage && typeof window.storage.get==='function');
+
+async function loadSessions(){
+  try{
+    if(hasClaudeStorage){
+      const res = await window.storage.get('sessions', false);
+      sessions = res ? JSON.parse(res.value) : [];
+    }else{
+      const raw = localStorage.getItem('steady-sessions');
+      sessions = raw ? JSON.parse(raw) : [];
+    }
+  }catch(e){ sessions = []; }
+  renderAll();
+}
+async function saveSessions(){
+  try{
+    if(hasClaudeStorage){
+      await window.storage.set('sessions', JSON.stringify(sessions), false);
+    }else{
+      localStorage.setItem('steady-sessions', JSON.stringify(sessions));
+    }
+  }
+  catch(e){ console.error('save failed', e); }
+}
+
+/* ============================================================
+   RENDER: HOME
+   ============================================================ */
+function techById(id){ return TECHNIQUES.find(t=>t.id===id); }
+
+function renderTechList(){
+  const list = document.getElementById('techList');
+  list.innerHTML = '';
+  TECHNIQUES.forEach(t=>{
+    const el = document.createElement('div');
+    el.className='tech-card';
+    el.onclick=()=>openDetail(t.id);
+    el.innerHTML = `
+      <div class="tech-icon" style="background:${t.color}33;">${t.icon}</div>
+      <div class="tech-info">
+        <div class="tname">${t.name}</div>
+        <div class="tdesc">${t.short}</div>
+      </div>
+      <div class="tech-chevron">›</div>`;
+    list.appendChild(el);
+  });
+}
+
+function computeStreak(){
+  const days = new Set(sessions.map(s=>s.date));
+  let streak=0;
+  let d = new Date();
+  while(true){
+    const key = d.toISOString().slice(0,10);
+    if(days.has(key)){ streak++; d.setDate(d.getDate()-1); }
+    else break;
+  }
+  return streak;
+}
+
+function renderStats(){
+  document.getElementById('streakNum').textContent = computeStreak();
+  const now = new Date();
+  const weekAgo = new Date(now); weekAgo.setDate(now.getDate()-7);
+  const weekSessions = sessions.filter(s=> new Date(s.date) >= weekAgo);
+  const weekMin = Math.round(weekSessions.reduce((a,s)=>a+s.durationSec,0)/60);
+  document.getElementById('statWeekMin').textContent = weekMin;
+  document.getElementById('statWeekSessions').textContent = weekSessions.length;
+  document.getElementById('statTotal').textContent = sessions.length;
+
+  // suggest technique: least-practiced, or rotate
+  let suggestion = TECHNIQUES[0];
+  if(sessions.length){
+    const counts = {};
+    TECHNIQUES.forEach(t=>counts[t.id]=0);
+    sessions.forEach(s=>{ if(counts[s.techId]!==undefined) counts[s.techId]++; });
+    let min = Infinity;
+    TECHNIQUES.forEach(t=>{ if(counts[t.id] < min){ min = counts[t.id]; suggestion = t; } });
+  }
+  document.getElementById('homeSuggestTitle').textContent = `Try ${suggestion.name} today`;
+  document.getElementById('quickStartBtn').onclick = ()=> openDetail(suggestion.id);
+}
+
+/* ============================================================
+   NAV
+   ============================================================ */
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById('screen-'+id).classList.add('active');
+}
+function goHome(){
+  stopSessionTimers();
+  showScreen('home');
+  setNav('home');
+}
+function setNav(name){
+  document.querySelectorAll('.navbtn').forEach(b=>{
+    b.classList.toggle('active', b.dataset.screen===name);
+  });
+}
+document.querySelectorAll('.navbtn').forEach(b=>{
+  b.addEventListener('click', ()=>{
+    const s = b.dataset.screen;
+    if(s==='home') goHome();
+    else { showScreen(s); setNav(s); if(s==='progress') renderProgress(); }
+  });
+});
+
+/* ============================================================
+   DETAIL
+   ============================================================ */
+function openDetail(id){
+  currentTech = techById(id);
+  document.getElementById('detailIcon').textContent = currentTech.icon;
+  document.getElementById('detailIcon').style.background = currentTech.color+'33';
+  document.getElementById('detailTitle').textContent = currentTech.name;
+  document.getElementById('detailBody').innerHTML = currentTech.body;
+  const lengthRow = document.getElementById('lengthRow');
+  lengthRow.innerHTML='';
+  LENGTHS.forEach(len=>{
+    const el = document.createElement('div');
+    el.className='length-opt'+(len===currentLen?' selected':'');
+    el.textContent = len+' min';
+    el.onclick=()=>{ currentLen=len; document.querySelectorAll('.length-opt').forEach(o=>o.classList.remove('selected')); el.classList.add('selected'); };
+    lengthRow.appendChild(el);
+  });
+  showScreen('detail');
+}
+document.getElementById('beginSessionBtn').onclick = ()=> startSession();
+
+/* ============================================================
+   SESSION ENGINE
+   ============================================================ */
+function buildPromptQueue(tech){
+  const pools = [tech.words, tech.phrases, tech.sentences].filter(p=>p && p.length);
+  let all = [];
+  pools.forEach(p=> all = all.concat(shuffle([...p])));
+  return all.length ? all : ['Keep breathing steady.'];
+}
+function shuffle(arr){
+  for(let i=arr.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [arr[i],arr[j]]=[arr[j],arr[i]];
+  }
+  return arr;
+}
+
+function startSession(){
+  sessionSecondsLeft = currentLen*60;
+  promptQueue = buildPromptQueue(currentTech);
+  promptIdx = 0;
+  sessionStartTs = Date.now();
+  showScreen('session');
+  updateTimerDisplay();
+  showNextPrompt();
+  startPaceLoop();
+  sessionTimerHandle = setInterval(()=>{
+    sessionSecondsLeft--;
+    updateTimerDisplay();
+    if(sessionSecondsLeft<=0){ finishSession(); }
+  },1000);
+}
+function updateTimerDisplay(){
+  const m = Math.floor(sessionSecondsLeft/60).toString().padStart(2,'0');
+  const s = (sessionSecondsLeft%60).toString().padStart(2,'0');
+  document.getElementById('sessionTimer').textContent = `${m}:${s}`;
+}
+function showNextPrompt(){
+  const raw = promptQueue[promptIdx % promptQueue.length];
+  promptIdx++;
+  const html = raw.split('/').map(chunk=>chunk.trim()).join('<span class="pause-mark">/</span> ');
+  document.getElementById('promptText').innerHTML = html;
+}
+document.getElementById('skipPromptBtn').onclick = showNextPrompt;
+document.getElementById('endSessionBtn').onclick = ()=> finishSession();
+
+function startPaceLoop(){
+  const circle = document.getElementById('paceCircle');
+  const cueLabel = document.getElementById('paceCue');
+  const {in:inMs, hold, out:outMs} = currentTech.pace;
+  const cycle = ()=>{
+    // breathe in / build
+    circle.style.transition = `transform ${inMs}ms cubic-bezier(.4,0,.2,1)`;
+    circle.style.transform = 'scale(1.35)';
+    cueLabel.textContent = currentTech.cueIn;
+    setTimeout(()=>{
+      setTimeout(()=>{
+        circle.style.transition = `transform ${outMs}ms cubic-bezier(.4,0,.2,1)`;
+        circle.style.transform = 'scale(0.85)';
+        cueLabel.textContent = currentTech.cueOut;
+      }, hold);
+    }, inMs);
+    paceHandle = setTimeout(cycle, inMs+hold+outMs);
+  };
+  cycle();
+}
+function stopSessionTimers(){
+  if(sessionTimerHandle){ clearInterval(sessionTimerHandle); sessionTimerHandle=null; }
+  if(paceHandle){ clearTimeout(paceHandle); paceHandle=null; }
+}
+
+function finishSession(){
+  stopSessionTimers();
+  const actualDuration = sessionStartTs ? Math.round((Date.now()-sessionStartTs)/1000) : currentLen*60;
+  window._pendingSession = {
+    techId: currentTech.id,
+    techName: currentTech.name,
+    date: new Date().toISOString().slice(0,10),
+    durationSec: Math.max(actualDuration, 5)
+  };
+  pendingRating = 0;
+  document.querySelectorAll('.rating-opt').forEach(o=>o.classList.remove('selected'));
+  showScreen('rating');
+}
+document.querySelectorAll('.rating-opt').forEach(o=>{
+  o.addEventListener('click', ()=>{
+    document.querySelectorAll('.rating-opt').forEach(x=>x.classList.remove('selected'));
+    o.classList.add('selected');
+    pendingRating = parseInt(o.dataset.v);
+  });
+});
+document.getElementById('saveRatingBtn').onclick = async ()=>{
+  const rec = window._pendingSession;
+  if(rec){
+    rec.rating = pendingRating || 3;
+    rec.id = Date.now()+'-'+Math.random().toString(36).slice(2,7);
+    sessions.push(rec);
+    await saveSessions();
+  }
+  goHome();
+};
+
+/* ============================================================
+   PROGRESS
+   ============================================================ */
+function renderProgress(){
+  // heatmap: last 30 days, 10 columns x 3 rows, oldest first
+  const heatmap = document.getElementById('heatmap');
+  heatmap.innerHTML='';
+  const dayMinutes = {};
+  sessions.forEach(s=>{
+    dayMinutes[s.date] = (dayMinutes[s.date]||0) + s.durationSec/60;
+  });
+  const cells = [];
+  for(let i=29;i>=0;i--){
+    const d = new Date(); d.setDate(d.getDate()-i);
+    const key = d.toISOString().slice(0,10);
+    cells.push(dayMinutes[key]||0);
+  }
+  cells.forEach(min=>{
+    const c = document.createElement('div');
+    let cls='hcell';
+    if(min>0 && min<5) cls+=' l1';
+    else if(min>=5 && min<15) cls+=' l2';
+    else if(min>=15) cls+=' l3';
+    c.className=cls;
+    heatmap.appendChild(c);
+  });
+
+  // bar chart by technique (all time minutes)
+  const bar = document.getElementById('barChart');
+  bar.innerHTML='';
+  const totals = {};
+  TECHNIQUES.forEach(t=>totals[t.id]=0);
+  sessions.forEach(s=>{ if(totals[s.techId]!==undefined) totals[s.techId]+=s.durationSec/60; });
+  const maxMin = Math.max(1, ...Object.values(totals));
+  TECHNIQUES.forEach(t=>{
+    const min = Math.round(totals[t.id]);
+    const row = document.createElement('div');
+    row.className='bar-row';
+    row.innerHTML = `
+      <div class="bar-label">${t.name}</div>
+      <div class="bar-track"><div class="bar-fill" style="width:${(totals[t.id]/maxMin*100)}%; background:linear-gradient(90deg, ${t.color}, var(--accent-warm));"></div></div>
+      <div class="bar-val">${min}m</div>`;
+    bar.appendChild(row);
+  });
+
+  // recent log
+  const log = document.getElementById('logList');
+  log.innerHTML='';
+  if(!sessions.length){
+    log.innerHTML = '<div class="empty-state">No sessions logged yet — finish one and it\'ll show up here.</div>';
+  }else{
+    const recent = [...sessions].reverse().slice(0,15);
+    const faces = {1:'😣',2:'😕',3:'😐',4:'🙂',5:'😄'};
+    recent.forEach(s=>{
+      const row = document.createElement('div');
+      row.className='log-row';
+      const mins = Math.round(s.durationSec/60);
+      row.innerHTML = `
+        <div>
+          <div class="log-tech">${s.techName}</div>
+          <div class="log-meta">${s.date} · ${mins} min</div>
+        </div>
+        <div class="log-rating">${faces[s.rating]||'😐'}</div>`;
+      log.appendChild(row);
+    });
+  }
+}
+
+function renderAll(){
+  renderTechList();
+  renderStats();
+}
+
+/* ============================================================
+   INIT
+   ============================================================ */
+loadSessions();
+</script>
+</body>
+</html>
